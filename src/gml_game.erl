@@ -2,7 +2,7 @@
 -module(gml_game).
 
 % API
--export([new/0, gen/3, view/5]).
+-export([new/0, gen/3, view/5, step/1]).
 
 % Types
 -record(game, {state :: gml_matrix:matrix(),
@@ -35,6 +35,13 @@ view(X,Y,W,H,#game{state=M}) ->
     Lines = [[show_cell(V,$.,$#) || V <- Row] || Row <- View],
     string:join(Lines, "\n") ++ "\n".
 
+-spec step(game()) -> game().
+step(#game{state=M, generation=C}) ->
+    %% add 1 point to every cell near live one and 100 to alive themself
+    ME = expand_matrix(M),
+    %% keep all cells with 3 points (new born), 102 and 103 - old with enough neighbours
+    MNew = gml_matrix:delete(fun(V) -> V /= 3 andalso V /= 102 andalso V /= 103 end, ME),
+    #game{state = MNew, generation=C+1}.
 
 
 %% Internal --------------
@@ -43,6 +50,21 @@ show_cell(0,Dead,_Live) ->
     Dead;
 show_cell(_,_Dead,Live) ->
     Live.
+
+expand_matrix(MOld) ->
+    gml_matrix:fold_live(
+      fun(X,Y,M) ->
+              gml_matrix:sum(M,expand_cell(X,Y))
+      end,
+      gml_matrix:new(),
+      MOld).
+
+expand_cell(X,Y) ->
+    Cells = [{X+Xd, Y+Yd} || Xd <- [-1,0,1], Yd <- [-1,0,1],  {Xd,Yd} /= {0,0} ],
+    M = gml_matrix:from_list(Cells),
+    % max cell count can be 8, so we add some big constant to distinct new and old cells
+    gml_matrix:write(X,Y,100,M).
+
 
 %% Tests -----------------
 
@@ -56,9 +78,23 @@ gen_test_() ->
      ?_assertMatch(0, G#game.generation)
     ].
 
-
 view_test_() ->
     G = gen(3,3,1),
     ?_assertMatch("...\n...\n", view(10,10,3,2,G)).
 
+step_test_() ->
+    Osc = gml_matrix:from_list([{1,0},{1,1},{1,2}]),
+    G = #game{state = Osc, generation = 0},
+    G1 = step(G),
+    G2 = step(G1),
+    [
+     ?_assertMatch("...\n"
+                   "###\n"
+                   "...\n", view(0,0,3,3,G1)),
+     ?_assertMatch(1, G1#game.generation),
+     ?_assertMatch(".#.\n"
+                   ".#.\n"
+                   ".#.\n", view(0,0,3,3,G2)),
+     ?_assertMatch(2, G2#game.generation)
+    ].
 -endif.

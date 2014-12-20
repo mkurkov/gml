@@ -7,7 +7,7 @@
 -export([new/0,
          write/3, write/4, read/3,
          from_list/1, to_list/1,
-         delete/2,
+         fold_live/3, delete/2,
          sum/2, count/1,
          compact/1,view/5]).
 
@@ -54,6 +54,15 @@ to_list(M) ->
 -spec delete(fun((integer()) -> boolean()), matrix()) -> matrix().
 delete(Pred, M) ->
     dict:filter(fun(_K,V) -> not Pred(V) end, M).
+
+-spec fold_live(fun((integer(), integer(), any()) -> any()), any(), matrix()) -> any().
+fold_live(F, Acc0, M) ->
+    dict:fold(
+      fun(_K, 0, Acc) -> Acc;
+         ({X,Y}, _V, Acc) -> F(X,Y,Acc)
+      end,
+      Acc0,
+      M).
 
 -spec sum(matrix(),matrix()) -> matrix().
 sum(M1,M2) ->
@@ -136,5 +145,12 @@ view_test_() ->
      ?_assertMatch([[0,0,0],
                     [0,0,0]], view(100,100,3,2,M))
     ].
+
+fold_live_test_() ->
+    M = gml_matrix:from_list([{0,1},{1,2}]),
+    ?_assertMatch(4, gml_matrix:fold_live(
+                       fun(X,Y,C) -> C + X + Y end,
+                       0, M)).
+
 
 -endif.

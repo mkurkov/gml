@@ -23,5 +23,8 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    {ok, { {one_for_one, 5, 10}, []} }.
+    Server = {gml_server,
+              {gml_server, start_link, []},
+              permanent, 10, worker, [gml_server]},
 
+    {ok, { {one_for_one, 5, 10}, [Server]} }.

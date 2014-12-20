@@ -5,4 +5,4 @@
               {applications,[kernel,stdlib]},
               {mod,{gml_app,[]}},
               {env,[]},
-              {modules,[gml,gml_app,gml_sup]}]}.
+              {modules,[gml,gml_app,gml_game,gml_server,gml_sup]}]}.

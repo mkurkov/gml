@@ -2,7 +2,7 @@
 -module(gml_game).
 
 % API
--export([new/0, gen/3, view/5, step/1]).
+-export([new/0, gen/3, view/5, step/1, load/1]).
 
 % Types
 -record(game, {state :: gml_matrix:matrix(),
@@ -43,6 +43,12 @@ step(#game{state=M, generation=C}) ->
     MNew = gml_matrix:delete(fun(V) -> V /= 3 andalso V /= 102 andalso V /= 103 end, ME),
     #game{state = MNew, generation=C+1}.
 
+-spec load(string()) -> game().
+load(FileName) ->
+    {ok, File} = file:open(FileName, [read]),
+    {ok,M} = load_lines(File),
+    file:close(File),
+    #game{state=M, generation=0}.
 
 %% Internal --------------
 
@@ -64,6 +70,29 @@ expand_cell(X,Y) ->
     M = gml_matrix:from_list(Cells),
     % max cell count can be 8, so we add some big constant to distinct new and old cells
     gml_matrix:write(X,Y,100,M).
+
+
+load_lines(File) ->
+    load_lines(File,0,gml_matrix:new()).
+load_lines(File, Y, M) ->
+    case file:read_line(File) of
+        {ok, "!" ++ _Line} ->
+            load_lines(File, Y, M);
+        {ok, Line} ->
+            M1 = load_chars(Line,0,Y,M),
+            load_lines(File, Y+1, M1);
+        eof ->
+            {ok, M}
+    end.
+
+load_chars("\n", _X, _Y, M) ->
+    M;
+load_chars("", _X, _Y, M) ->
+    M;
+load_chars([C | Line], X, Y, M)  when C == $. orelse C == 32 ->
+    load_chars(Line,X+1,Y,M);
+load_chars([_ | Line], X, Y, M) ->
+    load_chars(Line, X+ 1, Y, gml_matrix:write(X,Y,M)).
 
 
 %% Tests -----------------
@@ -97,4 +126,15 @@ step_test_() ->
                    ".#.\n", view(0,0,3,3,G2)),
      ?_assertMatch(2, G2#game.generation)
     ].
+
+load_test_() ->
+    io:format("HI"),
+    G = gml_game:load("../priv/oscillator.gml"),
+    [
+     ?_assertMatch("...\n"
+                   "###\n"
+                   "...\n", view(0,0,3,3,G)),
+     ?_assertMatch(0, G#game.generation)
+    ].
+
 -endif.

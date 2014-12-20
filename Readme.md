@@ -19,6 +19,31 @@ There are several commands that you can run from shell to control game process:
 * gml:load("somefile.gml") - load game state from file (see description of format below)
 * gml:save(0,0,100,50,"somefile.gml") - make a snapshot of game field, params - X,Y,W,H,FileName
 
+Coordinates started from top left then down and right.
+In `priv` directory there are several examples.
+
+Example usage:
+
+    > gml:load("priv/oscillator.gml").
+    ok
+    > gml:view(0,0,5,5).
+    .....
+    ###..
+    .....
+    .....
+    .....
+    ok
+    > gml:run(1).
+    ok
+    > gml:view(0,0,5,5).
+    .#...
+    .#...
+    .#...
+    .....
+    .....
+    ok
+
+
 Input file format
 -----------------
 
@@ -26,14 +51,14 @@ Input files have `.gml` extension and have simple structure: just put any symbol
 Dots and spaces represent dead cells. Lines started with exclamation mark is ignored and can be used for comments.
 For example:
 
-> cat glider.gml
+> cat priv/glider.gml
 ```
  .#.
  ..#
  ###
 ```
 
-> cat gosper_gun.gml
+> cat priv/gosper_gun.gml
 ```
 !Name: Gosper glider gun
 !Author: Bill Gosper

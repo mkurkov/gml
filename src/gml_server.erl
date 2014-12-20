@@ -15,7 +15,7 @@
 %% ------------------------------------------------------------------
 
 -export([start_link/0]).
--export([gen/3, game/0, run/1, run/0, pause/0]).
+-export([set_game/1, game/0, run/1, run/0, pause/0]).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Exports
@@ -30,10 +30,6 @@
 
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
-
--spec gen(non_neg_integer(), non_neg_integer(), non_neg_integer()) -> ok.
-gen(W,H,C) ->
-    gen_server:call(?SERVER, {gen, W, H, C}).
 
 -spec game() -> gml_game:game().
 game() ->
@@ -51,6 +47,11 @@ run() ->
 pause() ->
     gen_server:call(?SERVER, pause).
 
+-spec set_game(gml_game:game()) -> ok.
+set_game(Game) ->
+    gen_server:call(?SERVER, {set_game, Game}).
+
+
 %% ------------------------------------------------------------------
 %% gen_server Function Definitions
 %% ------------------------------------------------------------------
@@ -60,8 +61,7 @@ init(_Args) ->
     State = #state{game = Game},
     {ok, State}.
 
-handle_call({gen, W, H, C}, _From, State) ->
-    Game = gml_game:gen(W,H,C),
+handle_call({set_game, Game}, _From, State) ->
     State1 = State#state{game=Game},
     {reply, ok, State1};
 handle_call(game, _From, State) ->

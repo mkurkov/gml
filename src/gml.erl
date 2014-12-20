@@ -11,7 +11,8 @@
 gen(W,H,C) when is_integer(W), is_integer(H), is_integer(C),
                 W > 0, H > 0, C > 0
 ->
-    gml_server:gen(W,H,C).
+    Game = gml_game:gen(W,H,C),
+    gml_server:set_game(Game).
 
 -spec view(integer(),integer(),non_neg_integer(),non_neg_integer()) -> ok.
 view(X,Y,W,H) when is_integer(X), is_integer(Y), is_integer(W), is_integer(H),
@@ -36,7 +37,8 @@ pause() ->
 
 -spec load(string()) -> ok.
 load(FileName) ->
-    ok.
+    Game = gml_game:load(FileName),
+    gml_server:set_game(Game).
 
 -spec save(integer(), integer(), non_neg_integer(), non_neg_integer(), string()) -> ok.
 save(X,Y,W,H,FileName) when is_integer(X), is_integer(Y), is_integer(W), is_integer(H),

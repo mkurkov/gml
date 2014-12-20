@@ -42,6 +42,8 @@ Example usage:
     .....
     .....
     ok
+    > gml:save(0,0,5,5,"dump.gml").
+    ok
 
 
 Input file format

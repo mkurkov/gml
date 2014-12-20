@@ -44,4 +44,5 @@ load(FileName) ->
 save(X,Y,W,H,FileName) when is_integer(X), is_integer(Y), is_integer(W), is_integer(H),
                             W > 0, H > 0
 ->
-    ok.
+    Game = gml_server:game(),
+    gml_game:save(X,Y,W,H,FileName,Game).

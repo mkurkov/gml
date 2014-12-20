@@ -2,7 +2,7 @@
 -module(gml_game).
 
 % API
--export([new/0, gen/3, view/5, step/1, load/1]).
+-export([new/0, gen/3, view/5, step/1, load/1, save/6]).
 
 % Types
 -record(game, {state :: gml_matrix:matrix(),
@@ -49,6 +49,15 @@ load(FileName) ->
     {ok,M} = load_lines(File),
     file:close(File),
     #game{state=M, generation=0}.
+
+-spec save(integer(),integer(),non_neg_integer(),non_neg_integer(), string(), game()) -> ok.
+save(X,Y,W,H, FileName, Game) ->
+    Header = io_lib:format("! GML Game of life dump file~n"
+                           "! Generation: ~p~n"
+                           "! Viewport: X:~p Y:~p W:~p H:~p~n",
+                           [Game#game.generation,X,Y,W,H]),
+    View = view(X,Y,W,H,Game),
+    file:write_file(FileName,[Header,View]).
 
 %% Internal --------------
 

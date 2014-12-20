@@ -23,15 +23,15 @@ view(X,Y,W,H) when is_integer(X), is_integer(Y), is_integer(W), is_integer(H),
 
 -spec run() -> ok.
 run() ->
-    ok.
+    gml_server:run().
 
 -spec run(non_neg_integer()) -> ok.
 run(N) when is_integer(N), N > 0 ->
-    ok.
+    gml_server:run(N).
 
 -spec pause() -> ok.
 pause() ->
-    ok.
+    gml_server:pause().
 
 
 -spec load(string()) -> ok.

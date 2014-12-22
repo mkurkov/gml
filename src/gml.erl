@@ -3,7 +3,7 @@
 -module(gml).
 
 % API
--export([gen/3,run/0,run/1,pause/0,view/4,load/1,save/5]).
+-export([gen/3,run/0,run/1,pause/0,view/4,watch/4,load/1,save/5]).
 
 %% API
 
@@ -21,6 +21,16 @@ view(X,Y,W,H) when is_integer(X), is_integer(Y), is_integer(W), is_integer(H),
     Game = gml_server:game(),
     View = gml_game:view(X,Y,W,H,Game),
     io:format(View).
+
+-spec watch(integer(),integer(),non_neg_integer(),non_neg_integer()) -> ok.
+watch(X,Y,W,H) when is_integer(X), is_integer(Y), is_integer(W), is_integer(H),
+                          W > 0, H > 0
+->
+    gml_server:watch(X,Y,W,H,"Press ENTER to stop watching."),
+    gml:run(),
+    io:fread("", ""),
+    gml:pause(),
+    gml_server:unwatch().
 
 -spec run() -> ok.
 run() ->
@@ -46,3 +56,18 @@ save(X,Y,W,H,FileName) when is_integer(X), is_integer(Y), is_integer(W), is_inte
 ->
     Game = gml_server:game(),
     gml_game:save(X,Y,W,H,FileName,Game).
+
+
+%% Internal functions
+
+% move cursor to beginning of the line
+first_row() ->
+    io:format("\e[H").
+
+% clear the console
+cls() ->
+    io:format("\e[J").
+
+% both
+full_cls() ->
+    io:format("\e[H\e[J").

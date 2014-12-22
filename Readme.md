@@ -18,6 +18,7 @@ There are several commands that you can run from shell to control game process:
 * gml:view(0,0,100,50) - print part of game field to console, params are X,Y,W,H
 * gml:load("somefile.gml") - load game state from file (see description of format below)
 * gml:save(0,0,100,50,"somefile.gml") - make a snapshot of game field, params - X,Y,W,H,FileName
+* gml:watch(0,0,100,40) - run current game and print view to console
 
 Coordinates started from top left then down and right.
 In `priv` directory there are several examples.
@@ -44,6 +45,19 @@ Example usage:
     ok
     > gml:save(0,0,5,5,"dump.gml").
     ok
+
+Gosper gun war watching:
+
+    > gml:load("priv/gosper_gun_war.gml").
+    ok
+    > gml:watch(0,0,100,40)
+    ...
+    ...
+    Watching X:0 Y:0 W:100 H:40. Generation: 311.
+    Press ENTER to stop watching.
+
+    ok
+    >
 
 
 Input file format

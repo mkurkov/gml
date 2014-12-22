@@ -2,7 +2,7 @@
 -module(gml_game).
 
 % API
--export([new/0, gen/3, view/5, step/1, load/1, save/6]).
+-export([new/0, gen/3, view/5, generation/1, step/1, load/1, save/6]).
 
 % Types
 -record(game, {state :: gml_matrix:matrix(),
@@ -34,6 +34,10 @@ view(X,Y,W,H,#game{state=M}) ->
     View = gml_matrix:view(X,Y,W,H,M),
     Lines = [[show_cell(V,$.,$#) || V <- Row] || Row <- View],
     string:join(Lines, "\n") ++ "\n".
+
+-spec generation(game()) -> non_neg_integer().
+generation(#game{generation=G}) ->
+    G.
 
 -spec step(game()) -> game().
 step(#game{state=M, generation=C}) ->

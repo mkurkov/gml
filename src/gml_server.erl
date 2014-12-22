@@ -3,10 +3,12 @@
 -define(SERVER, ?MODULE).
 -record(state, {
           game :: gml_game:game(),
-          mode :: run_mode()
+          mode :: run_mode(),
+          watch = {} :: watch_mode()
          }).
 
 -type run_mode() :: stop | run | {run, integer()}.
+-type watch_mode() :: {} | {integer(), integer(), non_neg_integer(), non_neg_integer(), string()}.
 
 -define(GAME_TICK, 100).
 
@@ -15,7 +17,7 @@
 %% ------------------------------------------------------------------
 
 -export([start_link/0]).
--export([set_game/1, game/0, run/1, run/0, pause/0]).
+-export([set_game/1, game/0, run/1, run/0, pause/0, watch/5, unwatch/0]).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Exports
@@ -51,6 +53,14 @@ pause() ->
 set_game(Game) ->
     gen_server:call(?SERVER, {set_game, Game}).
 
+-spec watch(integer(), integer(), non_neg_integer(), non_neg_integer(), string()) -> ok.
+watch(X,Y,W,H,Message) ->
+    gen_server:call(?SERVER, {watch, X, Y, W, H, Message}).
+
+-spec unwatch() -> ok.
+unwatch() ->
+    gen_server:call(?SERVER, unwatch).
+
 
 %% ------------------------------------------------------------------
 %% gen_server Function Definitions
@@ -76,6 +86,12 @@ handle_call(run, _From, State) ->
     {reply, ok, S1};
 handle_call(pause, _From, State) ->
     S1 = State#state{mode=stopped},
+    {reply, ok, S1};
+handle_call({watch, X,Y,W,H,Message}, _From, State) ->
+    S1 = State#state{watch = {X,Y,W,H,Message}},
+    {reply, ok, S1};
+handle_call(unwatch, _From, State) ->
+    S1 = State#state{watch = {}},
     {reply, ok, S1}.
 
 handle_cast(_Msg, State) ->
@@ -97,6 +113,7 @@ handle_info(step, #state{mode=Mode,game=Game} = State) ->
                 send_tick(),
                 State#state{game=G1}
         end,
+    do_watch(State1),
     {noreply, State1}.
 
 terminate(_Reason, _State) ->
@@ -111,3 +128,25 @@ code_change(_OldVsn, State, _Extra) ->
 
 send_tick() ->
     erlang:send_after(?GAME_TICK, self(), step).
+
+do_watch(#state{watch={}}) ->
+    ok;
+do_watch(#state{game=G,watch={X,Y,W,H,Message}}) ->
+    View = gml_game:view(X,Y,W,H,G),
+    Generation = gml_game:generation(G),
+    full_cls(),
+    Footer = io_lib:format("Watching X:~p Y:~p W:~p H:~p. Generation: ~p.~n~s~n", [X,Y,W,H,Generation,Message]),
+    io:format([View,Footer]).
+
+
+%% move cursor to beginning of the line
+first_row() ->
+    io:format("\e[H").
+
+%% clear the console
+cls() ->
+    io:format("\e[J").
+
+%% both
+full_cls() ->
+    io:format("\e[H\e[J").
